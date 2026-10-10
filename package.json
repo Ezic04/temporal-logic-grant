@@ -15,7 +15,12 @@
     "vite": "^7.3.2"
   },
   "dependencies": {
-    "@netlify/functions": "^5.2.0",
     "katex": "^0.19.0"
+  },
+  "allowScripts": {
+    "elm@0.19.1-6": true,
+    "elm-format@0.8.8": true,
+    "esbuild@0.27.7": true,
+    "lamdera@0.19.1-1.4.0": true
   }
 }

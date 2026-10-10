@@ -8,7 +8,7 @@ import SiteConfig exposing (SiteConfig)
 
 config : SiteConfig
 config =
-    { canonicalUrl = "https://elm-pages.com"
+    { canonicalUrl = "https://temporal-project.org" -- TODO URL
     , head = head
     }
 
