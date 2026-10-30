@@ -9,9 +9,9 @@ import Head.Seo as Seo
 import Html exposing (Html)
 import Html.Attributes
 import Json.Decode as Decode
-import Language
 import Markdown.Parser
 import Markdown.Renderer
+import NewsPost
 import PagesMsg exposing (PagesMsg)
 import Route
 import RouteBuilder exposing (App, StatelessRoute)
@@ -32,10 +32,8 @@ type alias RouteParams =
 
 
 type alias Data =
-    { titlePl : String
-    , titleEn : String
-    , date : String
-    , body : String
+    { body : String
+    , metadata : NewsPost.Metadata
     }
 
 
@@ -65,29 +63,7 @@ pages =
 data : RouteParams -> BackendTask FatalError Data
 data routeParams =
     File.bodyWithFrontmatter
-        (\markdownBody ->
-            Decode.map3
-                (\date ( titlePl, titleEn ) () ->
-                    { date = date
-                    , titlePl = titlePl
-                    , titleEn = titleEn
-                    , body = markdownBody
-                    }
-                )
-                (Decode.field "date" Decode.string)
-                (Decode.oneOf
-                    [ Decode.map2 Tuple.pair
-                        (Decode.field "title_pl" Decode.string)
-                        (Decode.field "title_en" Decode.string)
-                    , Decode.map (\t -> ( t, t ))
-                        (Decode.field "title" Decode.string)
-                    , Decode.map (\t -> ( t, t ))
-                        (Decode.field "title_pl" Decode.string)
-                    , Decode.succeed ( "Untitled", "Untitled" )
-                    ]
-                )
-                (Decode.succeed ())
-        )
+        (\markdownBody -> Decode.map (Data markdownBody) NewsPost.metadataDecoder)
         ("content/news/" ++ routeParams.slug ++ ".md")
         |> BackendTask.allowFatal
 
@@ -98,9 +74,9 @@ head app =
         { canonicalUrlOverride = Nothing
         , siteName = Shared.siteName
         , image = Shared.siteImage
-        , description = app.data.titleEn
+        , description = app.data.metadata.title
         , locale = Nothing
-        , title = app.data.titleEn ++ " | News"
+        , title = app.data.metadata.title ++ " | News"
         }
         |> Seo.website
 
@@ -113,70 +89,23 @@ renderMarkdown markdown =
         |> Result.withDefault [ Html.text markdown ]
 
 
-extractBody : Language.Language -> String -> String
-extractBody lang raw =
-    if String.contains "<!-- en -->" raw then
-        case String.split "<!-- en -->" raw of
-            [ plPart, enPart ] ->
-                case lang of
-                    Language.Pl ->
-                        plPart
-                            |> String.replace "<!-- pl -->" ""
-                            |> String.trim
-
-                    Language.En ->
-                        String.trim enPart
-
-            _ ->
-                raw
-
-    else
-        raw
-
-
 view : App Data ActionData RouteParams -> Shared.Model -> View (PagesMsg Msg)
-view app shared =
-    let
-        lang =
-            shared.language
-
-        title =
-            Language.t lang
-                { pl = app.data.titlePl
-                , en = app.data.titleEn
-                }
-
-        bodyMarkdown =
-            extractBody lang app.data.body
-    in
-    { title = title
+view app _ =
+    { title = app.data.metadata.title
     , body =
         [ Html.div [ Html.Attributes.class "post-full" ]
             [ Html.div [ Html.Attributes.class "post-back" ]
-                [ Route.link []
-                    [ Html.text <|
-                        Language.t lang
-                            { pl = "← Wróć do aktualności"
-                            , en = "← Back to news"
-                            }
-                    ]
-                    Route.News
-                ]
+                [ Route.link [] [ Html.text "← Back to news" ] Route.News ]
             , Html.article []
                 [ Html.header []
-                    [ Html.h1 [] [ Html.text title ]
+                    [ Html.h1 [] [ Html.text app.data.metadata.title ]
                     , Html.p [ Html.Attributes.class "post-meta" ]
                         [ Html.time []
-                            [ Html.text <|
-                                Language.t lang
-                                    { pl = "Opublikowano: " ++ Language.formatDate lang app.data.date
-                                    , en = "Published: " ++ Language.formatDate lang app.data.date
-                                    }
-                            ]
+                            [ Html.text ("Published: " ++ NewsPost.formatDate app.data.metadata.date) ]
                         ]
                     ]
                 , Html.div [ Html.Attributes.class "post-content" ]
-                    (renderMarkdown bodyMarkdown)
+                    (renderMarkdown app.data.body)
                 ]
             ]
         ]

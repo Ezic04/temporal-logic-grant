@@ -1,3 +1,4 @@
+.vscode/
 .direnv/
 .elm-pages/
 node_modules/

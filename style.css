@@ -167,17 +167,6 @@ pre code {
   border-bottom: 1px solid var(--border-light);
 }
 
-.header-top-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1.5rem;
-}
-
-.site-title-box {
-  flex: 1;
-}
-
 .site-title {
   margin: 0;
   font-size: 1.85rem;
@@ -192,44 +181,6 @@ pre code {
   font-weight: 400;
   color: var(--text-muted);
   line-height: 1.45;
-}
-
-/* Language Switcher */
-.lang-switcher {
-  display: inline-flex;
-  align-items: center;
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-sm);
-  padding: 2px;
-  box-shadow: var(--shadow-sm);
-  flex-shrink: 0;
-}
-
-.lang-btn {
-  font-family: var(--font-sans);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 0.28rem 0.6rem;
-  margin: 0;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  border-radius: 3px;
-  cursor: pointer;
-  line-height: 1;
-  transition: all 0.15s ease;
-}
-
-.lang-btn:hover {
-  color: var(--text-main);
-  background-color: var(--bg-subtle);
-}
-
-.lang-btn.lang-btn-active {
-  background-color: var(--primary);
-  color: #ffffff;
 }
 
 /* Navigation Bar */
@@ -450,16 +401,6 @@ katex-math[display="true"] {
    Responsive Adjustments
    ========================================================================== */
 @media (max-width: 640px) {
-  .header-top-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-  }
-
-  .lang-switcher {
-    align-self: flex-start;
-  }
-
   .site-title {
     font-size: 1.55rem;
   }

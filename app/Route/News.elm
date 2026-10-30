@@ -8,8 +8,8 @@ import Head
 import Head.Seo as Seo
 import Html exposing (Html)
 import Html.Attributes
-import Json.Decode as Decode exposing (Decoder)
-import Language
+import Json.Decode as Decode
+import NewsPost
 import PagesMsg exposing (PagesMsg)
 import Route
 import RouteBuilder exposing (App, StatelessRoute)
@@ -31,11 +31,7 @@ type alias RouteParams =
 
 type alias Post =
     { slug : String
-    , date : String
-    , titlePl : String
-    , titleEn : String
-    , descriptionPl : String
-    , descriptionEn : String
+    , metadata : NewsPost.Metadata
     }
 
 
@@ -56,43 +52,6 @@ route =
         |> RouteBuilder.buildNoState { view = view }
 
 
-postMetadataDecoder : String -> Decoder Post
-postMetadataDecoder slug =
-    Decode.map3
-        (\date ( titlePl, titleEn ) ( descPl, descEn ) ->
-            { slug = slug
-            , date = date
-            , titlePl = titlePl
-            , titleEn = titleEn
-            , descriptionPl = descPl
-            , descriptionEn = descEn
-            }
-        )
-        (Decode.field "date" Decode.string)
-        (Decode.oneOf
-            [ Decode.map2 Tuple.pair
-                (Decode.field "title_pl" Decode.string)
-                (Decode.field "title_en" Decode.string)
-            , Decode.map (\t -> ( t, t ))
-                (Decode.field "title" Decode.string)
-            , Decode.map (\t -> ( t, t ))
-                (Decode.field "title_pl" Decode.string)
-            , Decode.succeed ( "Untitled", "Untitled" )
-            ]
-        )
-        (Decode.oneOf
-            [ Decode.map2 Tuple.pair
-                (Decode.field "description_pl" Decode.string)
-                (Decode.field "description_en" Decode.string)
-            , Decode.map (\d -> ( d, d ))
-                (Decode.field "description" Decode.string)
-            , Decode.map (\d -> ( d, d ))
-                (Decode.field "description_pl" Decode.string)
-            , Decode.succeed ( "", "" )
-            ]
-        )
-
-
 data : BackendTask FatalError Data
 data =
     Glob.succeed (\filePath slug -> { filePath = filePath, slug = slug })
@@ -106,12 +65,12 @@ data =
                 files
                     |> List.map
                         (\{ filePath, slug } ->
-                            File.onlyFrontmatter (postMetadataDecoder slug) filePath
+                            File.onlyFrontmatter (Decode.map (Post slug) NewsPost.metadataDecoder) filePath
                                 |> BackendTask.allowFatal
                         )
             )
         |> BackendTask.andThen BackendTask.combine
-        |> BackendTask.map (List.sortBy .date >> List.reverse)
+        |> BackendTask.map (List.sortBy (.metadata >> .date) >> List.reverse)
 
 
 head : App Data ActionData RouteParams -> List Head.Tag
@@ -131,79 +90,41 @@ view :
     App Data ActionData RouteParams
     -> Shared.Model
     -> View (PagesMsg Msg)
-view app shared =
-    let
-        lang =
-            shared.language
-    in
-    { title =
-        Language.t lang
-            { pl = "Aktualności"
-            , en = "News"
-            }
+view app _ =
+    { title = "News"
     , body =
         [ Html.section []
-            [ Html.h2 []
-                [ Html.text <|
-                    Language.t lang
-                        { pl = "Aktualności"
-                        , en = "News & Announcements"
-                        }
-                ]
+            [ Html.h2 [] [ Html.text "News & Announcements" ]
             , if List.isEmpty app.data then
-                Html.p []
-                    [ Html.text <|
-                        Language.t lang
-                            { pl = "Brak wpisów w aktualnościach."
-                            , en = "No news posts yet."
-                            }
-                    ]
+                Html.p [] [ Html.text "No news posts yet." ]
 
               else
                 Html.div [ Html.Attributes.class "news-list" ]
-                    (List.map (renderPostPreview lang) app.data)
+                    (List.map renderPostPreview app.data)
             ]
         ]
     }
 
 
-renderPostPreview : Language.Language -> Post -> Html (PagesMsg Msg)
-renderPostPreview lang post =
-    let
-        title =
-            Language.t lang
-                { pl = post.titlePl
-                , en = post.titleEn
-                }
-
-        description =
-            Language.t lang
-                { pl = post.descriptionPl
-                , en = post.descriptionEn
-                }
-    in
+renderPostPreview : Post -> Html (PagesMsg Msg)
+renderPostPreview { slug, metadata } =
     Html.article [ Html.Attributes.class "post-preview" ]
         [ Html.header []
             [ Html.time [ Html.Attributes.class "post-date" ]
-                [ Html.text (Language.formatDate lang post.date) ]
+                [ Html.text (NewsPost.formatDate metadata.date) ]
             , Html.h3 [ Html.Attributes.class "post-title" ]
-                [ Route.link [] [ Html.text title ] (Route.News__Slug_ { slug = post.slug })
+                [ Route.link [] [ Html.text metadata.title ] (Route.News__Slug_ { slug = slug })
                 ]
             ]
-        , if String.isEmpty description then
+        , if String.isEmpty metadata.description then
             Html.text ""
 
           else
             Html.p [ Html.Attributes.class "post-description" ]
-                [ Html.text description ]
+                [ Html.text metadata.description ]
         , Html.div [ Html.Attributes.class "post-actions" ]
             [ Route.link [ Html.Attributes.class "read-more" ]
-                [ Html.text <|
-                    Language.t lang
-                        { pl = "Czytaj dalej →"
-                        , en = "Read more →"
-                        }
-                ]
-                (Route.News__Slug_ { slug = post.slug })
+                [ Html.text "Read more →" ]
+                (Route.News__Slug_ { slug = slug })
             ]
         ]
