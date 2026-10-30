@@ -84,7 +84,7 @@ siteName =
 
 siteImage : Seo.Image
 siteImage =
-    { url = [ "images", "icon-png.png" ] |> UrlPath.join |> Pages.Url.fromPath
+    { url = [] |> UrlPath.join |> Pages.Url.fromPath
     , alt = "Logo"
     , dimensions = Nothing
     , mimeType = Nothing

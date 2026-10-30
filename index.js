@@ -1,17 +1,12 @@
 import katex from 'katex';
+import { katexOptions } from './katex-options.js';
 
 class KatexMath extends HTMLElement {
     connectedCallback() {
         const content = this.getAttribute('content') || '';
         const displayMode = this.hasAttribute('display');
 
-        katex.render(content, this, {
-            displayMode,
-            throwOnError: false,
-            macros: {
-                "\\f": "#1f(#2)"
-            }
-        });
+        katex.render(content, this, katexOptions({ displayMode, throwOnError: false }));
     }
 }
 

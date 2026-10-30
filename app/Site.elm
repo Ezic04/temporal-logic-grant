@@ -8,7 +8,7 @@ import SiteConfig exposing (SiteConfig)
 
 config : SiteConfig
 config =
-    { canonicalUrl = "https://temporal-project.org" -- TODO URL
+    { canonicalUrl = "https://ezic04.github.io/temporal-logic-grant"
     , head = head
     }
 
@@ -16,6 +16,5 @@ config =
 head : BackendTask FatalError (List Head.Tag)
 head =
     [ Head.metaName "viewport" (Head.raw "width=device-width,initial-scale=1")
-    , Head.sitemapLink "/sitemap.xml"
     ]
         |> BackendTask.succeed

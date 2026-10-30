@@ -20,7 +20,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx elm-pages build --base /temporal-logic-blog/
+      - run: npm run build:static -- /temporal-logic-grant
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

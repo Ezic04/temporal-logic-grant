@@ -3,7 +3,8 @@
   "type": "module",
   "scripts": {
     "start": "elm-pages dev",
-    "build": "elm-pages build"
+    "build": "elm-pages build",
+    "build:static": "elm-pages build && node scripts/static-base-path.mjs"
   },
   "devDependencies": {
     "elm": "^0.19.1-6",
