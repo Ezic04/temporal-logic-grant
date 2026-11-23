@@ -5,28 +5,31 @@
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      flake-utils,
-    }:
+    { nixpkgs, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = nixpkgs.legacyPackages.${system};
+        files = builtins.readDir ./.;
+        cabalFiles = pkgs.lib.filterAttrs (n: v: v == "regular" && pkgs.lib.hasSuffix ".cabal" n) files;
+        cabalFileName = builtins.head (builtins.attrNames cabalFiles);
+        projectName = pkgs.lib.removeSuffix ".cabal" cabalFileName;
+        hs = pkgs.haskellPackages;
+        projectPackage = hs.callCabal2nix projectName ./. { };
       in
       {
-        devShell = pkgs.mkShell {
-          buildInputs =
-            with pkgs;
-            with elmPackages;
-            [
-              elm-format
-              elm-language-server
-              elm-review
-              elm-test
-              nodejs
-            ];
+        devShells.default = hs.shellFor {
+          packages = p: [ projectPackage ];
+
+          nativeBuildInputs = with pkgs; [
+            cabal-install
+            haskell-language-server
+            hlint
+          ];
+
+          shellHook = ''
+            export CABAL_DIR="$PWD/.cabal-local"
+          '';
         };
       }
     );

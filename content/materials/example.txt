@@ -1,0 +1,10 @@
+---
+title: "Example material"
+description: "TODO: short description shown on the list"
+---
+Markdown with math: $\Box \Diamond p$.
+
+A PDF placed next to this file can be embedded with image syntax:
+`![Lecture 1](lecture1.pdf)`, or linked with `[slides](lecture1.pdf)`.
+
+![Konig Lemma](konig-lemma.pdf)

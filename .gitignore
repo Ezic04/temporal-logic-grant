@@ -1,6 +1,6 @@
-.vscode/
 .direnv/
-.elm-pages/
-node_modules/
-elm-stuff/
-dist/
+.cabal-local/
+dist-newstyle/
+_cache/
+_site/
+.envrc

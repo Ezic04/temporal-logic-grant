@@ -1,0 +1,20 @@
+cabal-version:      3.0
+name:               temporal-logic-grant
+version:            0.1.0.0
+build-type:         Simple
+
+executable site
+    main-is:          site.hs
+    default-language: GHC2021
+    ghc-options:      -Wall -O1
+    build-depends:
+        base,
+        aeson,
+        blaze-html,
+        filepath,
+        hakyll,
+        pandoc,
+        pandoc-types,
+        raw-strings-qq,
+        text,
+        time
